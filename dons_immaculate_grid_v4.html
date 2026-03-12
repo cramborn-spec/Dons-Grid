@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USF Dons — Immaculate Grid</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C8962A;
+  --gold-l: #E8B84B;
+  --gold-p: #F5D87A;
+  --green-d: #00291A;
+  --green-m: #003D28;
+  --green-b: rgba(0,55,32,0.65);
+  --cream: #F7F2E8;
+  --ink: #0D1A13;
+  --muted: #6B8077;
+  --red: #C0392B;
+  --correct-bg: #004D32;
+  --correct-bdr: rgba(46,204,113,0.4);
+  --bdr: rgba(200,150,42,0.2);
+  --cell-empty: rgba(0,38,22,0.65);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  background:var(--green-d);
+  color:var(--cream);
+  font-family:'Barlow',sans-serif;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding-bottom:48px;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.65;
+}
+
+/* ══ YEAR SELECTION SCREEN ══ */
+#yearScreen {
+  width:100%;max-width:500px;
+  padding:40px 24px;
+  display:flex;flex-direction:column;align-items:center;
+  animation:fadeIn .35s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+.ys-logo {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(42px,9vw,72px);
+  letter-spacing:.05em;line-height:.9;
+  text-align:center;margin-bottom:6px;
+}
+.ys-logo em{color:var(--gold);font-style:normal;}
+.ys-sub{
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:32px;text-align:center;
+}
+
+.ys-prompt{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:14px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:6px;text-align:center;
+}
+.ys-desc{
+  font-size:13px;color:var(--muted);text-align:center;
+  margin-bottom:24px;line-height:1.5;max-width:380px;
+}
+
+.year-checks{
+  display:flex;flex-direction:column;gap:10px;
+  width:100%;max-width:360px;margin-bottom:28px;
+}
+.year-check{
+  display:flex;align-items:center;gap:14px;
+  background:rgba(0,55,32,0.5);
+  border:1px solid var(--bdr);
+  padding:14px 18px;
+  cursor:pointer;
+  transition:background .15s,border-color .15s;
+  user-select:none;
+}
+.year-check:hover{background:rgba(200,150,42,.08);border-color:rgba(200,150,42,.35);}
+.year-check.selected{
+  background:rgba(200,150,42,.14);
+  border-color:var(--gold);
+}
+.yr-box{
+  width:20px;height:20px;
+  border:2px solid var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:border-color .15s,background .15s;
+}
+.year-check.selected .yr-box{
+  border-color:var(--gold);
+  background:var(--gold);
+}
+.yr-check-mark{
+  color:var(--green-d);font-size:13px;font-weight:800;
+  display:none;
+}
+.year-check.selected .yr-check-mark{display:block;}
+.yr-label{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:18px;font-weight:700;letter-spacing:.04em;
+  color:var(--cream);
+}
+.yr-count{
+  margin-left:auto;
+  font-family:'Barlow',sans-serif;font-size:11px;
+  color:var(--muted);letter-spacing:.04em;white-space:nowrap;
+}
+.year-check.selected .yr-count{color:var(--gold-l);}
+
+.ys-error{
+  font-size:13px;color:var(--red);
+  min-height:18px;margin-bottom:12px;
+  text-align:center;font-weight:500;
+}
+
+.btn-start{
+  font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;
+  background:var(--gold);color:var(--green-d);border:none;
+  padding:15px 48px;cursor:pointer;
+  transition:background .12s,opacity .12s;
+  width:100%;max-width:360px;
+}
+.btn-start:hover{background:var(--gold-p);}
+.btn-start:disabled{opacity:.4;cursor:not-allowed;}
+
+.ys-divider{
+  width:100%;max-width:360px;height:1px;
+  background:var(--bdr);margin:24px 0 20px;
+}
+.ys-all-row{
+  display:flex;align-items:center;gap:10px;
+  cursor:pointer;
+  font-size:12px;color:var(--muted);letter-spacing:.06em;
+  text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;
+}
+.ys-all-row:hover{color:var(--cream);}
+
+/* ══ GAME SCREEN ══ */
+#gameScreen{display:none;width:100%;flex-direction:column;align-items:center;}
+#gameScreen.active{display:flex;animation:fadeIn .3s ease;}
+
+/* ── HEADER ── */
+.hd{
+  width:100%;max-width:700px;padding:18px 14px 0;
+  display:flex;align-items:flex-end;justify-content:space-between;
+}
+.brand-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,5vw,44px);letter-spacing:.05em;line-height:1;}
+.brand-name em{color:var(--gold);font-style:normal;}
+.brand-sub{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:1px;}
+.hd-right{text-align:right;}
+.g-count{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--gold-l);line-height:1;}
+.g-lbl{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.yr-badge{
+  font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-top:2px;
+}
+.yr-badge span{color:var(--gold);font-size:11px;}
+
+.divider{width:100%;max-width:700px;height:1px;background:var(--bdr);margin:10px 0 8px;}
+
+/* ── PIPS ── */
+.pips{width:100%;max-width:700px;padding:0 14px;display:flex;align-items:center;gap:4px;margin-bottom:8px;}
+.pip{flex:1;height:6px;background:rgba(200,150,42,.1);border:1px solid rgba(200,150,42,.15);transition:background .3s,border-color .3s;}
+.pip.ok{background:var(--gold);border-color:var(--gold);}
+.pip.no{background:var(--red);border-color:var(--red);}
+.pip-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-left:6px;white-space:nowrap;}
+
+/* ── TOOLBAR ── */
+.toolbar{width:100%;max-width:700px;padding:0 14px 6px;display:flex;justify-content:flex-end;align-items:center;gap:10px;}
+.sc-lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+.sc-val{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold-l);}
+.btn-toolbar{
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gold);background:none;border:1px solid var(--bdr);
+  padding:5px 14px;cursor:pointer;transition:background .12s,color .12s;
+}
+.btn-toolbar:hover{background:var(--gold);color:var(--green-d);}
+
+/* ── GRID ── */
+.gw{width:100%;max-width:700px;padding:0 14px;}
+.grid{
+  display:grid;
+  grid-template-columns:120px repeat(3,1fr);
+  grid-template-rows:auto repeat(3,1fr);
+  gap:5px;width:100%;
+}
+.g-corner{display:flex;align-items:center;justify-content:center;padding:4px;}
+.corner-txt{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--gold);opacity:.3;text-align:center;line-height:1.1;}
+.hdr-main{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(10px,1.7vw,13px);letter-spacing:.04em;text-transform:uppercase;color:var(--gold-l);line-height:1.2;}
+.hdr-sub{font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:.03em;font-family:'Barlow',sans-serif;}
+.g-ch{background:var(--green-b);border:1px solid var(--bdr);border-bottom:2px solid rgba(200,150,42,.32);padding:10px 8px 9px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72px;}
+.g-rh{background:var(--green-b);border:1px solid var(--bdr);border-right:2px solid rgba(200,150,42,.32);padding:8px 10px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;text-align:right;}
+.g-cell{background:var(--cell-empty);border:1px solid var(--bdr);aspect-ratio:1;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;user-select:none;transition:background .14s,border-color .14s,transform .1s;min-height:95px;}
+.g-cell:not(.solved):not(.shown):hover{background:rgba(200,150,42,.1);border-color:rgba(200,150,42,.5);transform:scale(1.025);}
+.g-cell.active{border-color:var(--gold-l)!important;box-shadow:0 0 0 2px var(--gold-l),inset 0 0 14px rgba(200,150,42,.1);}
+.g-cell.solved{background:var(--correct-bg);border-color:var(--correct-bdr);cursor:default;}
+.g-cell.shown{background:rgba(55,8,8,.5);border-color:rgba(192,57,43,.22);cursor:default;}
+.g-cell.wflash{animation:wf .44s ease;}
+@keyframes wf{0%,100%{background:var(--cell-empty);border-color:var(--bdr);}45%{background:rgba(130,25,15,.6);border-color:var(--red);}}
+.g-cell.pop{animation:pi .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pi{from{transform:scale(.65);opacity:0;}to{transform:scale(1);opacity:1;}}
+.cell-plus{font-size:24px;color:var(--muted);opacity:.28;transition:opacity .14s;font-weight:300;}
+.g-cell:not(.solved):not(.shown):hover .cell-plus{opacity:.6;}
+.cell-body{text-align:center;padding:8px;}
+.cell-icon{font-size:18px;margin-bottom:3px;}
+.cell-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(10px,1.8vw,14px);color:var(--cream);line-height:1.2;}
+.cell-pts{font-size:10px;color:rgba(247,242,232,.45);margin-top:2px;letter-spacing:.03em;}
+.cell-miss .cell-name{color:rgba(247,242,232,.32);font-style:italic;font-size:11px;}
+.cell-tip{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:var(--ink);border:1px solid var(--gold);padding:5px 10px;font-size:11px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.04em;white-space:nowrap;color:var(--cream);pointer-events:none;opacity:0;transition:opacity .12s;z-index:20;}
+.g-cell:not(.solved):not(.shown):hover .cell-tip{opacity:1;}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.open{display:flex;}
+.modal{background:var(--green-m);border:1px solid var(--gold);border-bottom:none;width:100%;max-width:680px;padding:20px 20px 28px;animation:su .22s cubic-bezier(.34,1.1,.64,1);}
+@keyframes su{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.m-prompt{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;font-family:'Barlow Condensed',sans-serif;}
+.m-cats{font-size:clamp(15px,2.8vw,21px);font-weight:600;color:var(--cream);margin-bottom:14px;line-height:1.3;}
+.m-cats b{color:var(--gold-l);font-weight:700;}
+.irow{position:relative;display:flex;gap:8px;}
+.p-in{flex:1;background:rgba(0,0,0,.35);border:1px solid var(--bdr);color:var(--cream);font-family:'Barlow',sans-serif;font-size:16px;padding:12px 14px;outline:none;transition:border-color .15s;}
+.p-in:focus{border-color:var(--gold);}
+.p-in::placeholder{color:var(--muted);}
+.btn-lock{background:var(--gold);border:none;color:var(--green-d);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:12px 18px;cursor:pointer;transition:background .12s;white-space:nowrap;}
+.btn-lock:hover{background:var(--gold-p);}
+.btn-x{background:transparent;border:1px solid var(--bdr);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:12px 14px;cursor:pointer;transition:color .12s,border-color .12s;}
+.btn-x:hover{color:var(--cream);border-color:var(--muted);}
+.ac{position:absolute;top:100%;left:0;width:calc(100% - 136px);background:var(--ink);border:1px solid var(--gold);border-top:none;z-index:300;max-height:195px;overflow-y:auto;display:none;}
+.ac.open{display:block;}
+.ac-it{padding:9px 14px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--bdr);transition:background .1s;}
+.ac-it:hover,.ac-it.hi{background:rgba(200,150,42,.18);color:var(--gold-p);}
+.ac-it:last-child{border-bottom:none;}
+.ac-it em{color:var(--gold);font-style:normal;font-weight:700;}
+.m-err{min-height:18px;margin-top:9px;font-size:13px;color:#e74c3c;font-weight:500;letter-spacing:.02em;}
+.rpills{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.rp{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border:1px solid var(--bdr);color:var(--muted);}
+.rp.easy{border-color:rgba(46,204,113,.4);color:#2ecc71;}
+.rp.med{border-color:rgba(200,150,42,.45);color:var(--gold-l);}
+.rp.hard{border-color:rgba(192,57,43,.5);color:#e74c3c;}
+
+/* ── GAME OVER ── */
+.go{display:none;width:100%;max-width:700px;padding:14px 14px 0;}
+.go.show{display:block;}
+.gob{border:1px solid var(--gold);background:rgba(0,60,35,.45);padding:22px 24px;text-align:center;}
+.go-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(34px,6.5vw,52px);letter-spacing:.06em;line-height:1;}
+.go-title.win{color:var(--gold-l);}
+.go-title.loss{color:var(--muted);}
+.go-body{font-size:14px;color:var(--cream);margin:6px 0 18px;line-height:1.7;}
+.go-body b{color:var(--gold);}
+.go-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn-again{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;background:var(--gold);color:var(--green-d);border:none;padding:12px 32px;cursor:pointer;transition:background .12s;}
+.btn-again:hover{background:var(--gold-p);}
+.btn-change-yr{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--gold);border:1px solid var(--bdr);padding:12px 24px;cursor:pointer;transition:background .12s,color .12s;}
+.btn-change-yr:hover{background:rgba(200,150,42,.1);}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--green-d);}
+::-webkit-scrollbar-thumb{background:var(--gold);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  YEAR SELECTION SCREEN                    -->
+<!-- ══════════════════════════════════════════ -->
+<div id="yearScreen">
+  <div class="ys-logo">USF<br><em>DONS</em></div>
+  <div class="ys-sub">Immaculate Grid</div>
+
+  <div class="ys-prompt">Which seasons did you play?</div>
+  <div class="ys-desc">Select every year you were on the team. We'll build a grid using only players you would know.</div>
+
+  <div class="year-checks" id="yearChecks"></div>
+
+  <div class="ys-error" id="ysError"></div>
+  <button class="btn-start" id="btnStart" onclick="startGame()">Play →</button>
+
+  <div class="ys-divider"></div>
+  <div class="ys-all-row" onclick="selectAll()">
+    <div style="width:18px;height:18px;border:1px solid var(--muted);display:flex;align-items:center;justify-content:center;font-size:11px;" id="allBox"></div>
+    <span>Select all years</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  GAME SCREEN                              -->
+<!-- ══════════════════════════════════════════ -->
+<div id="gameScreen">
+  <div class="hd">
+    <div>
+      <div class="brand-name">USF <em>DONS</em></div>
+      <div class="brand-sub">Immaculate Grid</div>
+      <div class="yr-badge" id="yrBadge"></div>
+    </div>
+    <div class="hd-right">
+      <div class="g-count" id="gLeft">9</div>
+      <div class="g-lbl">Guesses Left</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="pips" id="pips"><div class="pip-lbl">Guesses</div></div>
+
+  <div class="toolbar">
+    <div class="sc-lbl">Score</div>
+    <div class="sc-val" id="scVal">0</div>
+    <button class="btn-toolbar" onclick="newGame()">New Grid ↺</button>
+    <button class="btn-toolbar" onclick="goToYearScreen()">Change Years ✎</button>
+  </div>
+
+  <div class="gw"><div class="grid" id="grid"></div></div>
+
+  <div class="go" id="go">
+    <div class="gob">
+      <div class="go-title" id="goTitle"></div>
+      <div class="go-body" id="goBody"></div>
+      <div class="go-btns">
+        <button class="btn-again" onclick="newGame()">Play Again</button>
+        <button class="btn-change-yr" onclick="goToYearScreen()">Change Years</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── INPUT MODAL ── -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="m-prompt">Name a player who fits both</div>
+    <div class="m-cats" id="mCats"></div>
+    <div class="irow">
+      <input class="p-in" id="pIn" type="text" placeholder="Start typing a name…" autocomplete="off" spellcheck="false">
+      <div class="ac" id="ac"></div>
+      <button class="btn-lock" onclick="submit()">Lock In</button>
+      <button class="btn-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="m-err" id="mErr"></div>
+    <div class="rpills" id="rPills"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  CATEGORY DATA  (from CSV)
+// ══════════════════════════════════════════════════
+const CAT_RAW = {
+  "Fall Cut": ["Andrew Bonfigli","Bryce Humphry","Casey Threats III","Chase Fogg","Evan Nahra","Grant Selig","Joey Capobianco","John Clinkenbeard","Jovani Wiggs","JJ Gomez (Ice JJ Swish)","Keller Rivers","Ken Hemmer","Max Toporek","Noah Nicholls","Ruben Rivera","Ryan Skjonsby","Patrick Kozielec","Cade Watson"],
+  "Graduate Transfer into USF": ["Aidan Risse","Aidan Schraeder","Andrew Hazell","Blake Atkins","Chris Bhyre","David Bedrosian","Declan Elias","Gauge Lockhart","Jackson Thielen","Joe Soberon","Keaton Carattini","Kenny Decelle","Marcelo Saldana","Nick Bacura","Ryan Yerby","Weston Lombard","Logan Leax","Assaf Lowengart"],
+  "Transfer into USF from 4 year (not grad)": ["Blake Shepardson","Isaiah Landry","Jared Lewis","Jordan Lewis","Kody Watanabe","Mattie Thomas","Michael Campagna","Paul Wheeler","Zack Ramppen","Will Hearn"],
+  "Grad Transfer out of USF": ["Harris Williams III","Jake Verwiel","Kody Watanabe","Marcelo Saldana","Mario Demera","Mattie Thomas","Max Jones","Tyler Martinez","Tyvon Moore","Zach Griffin","Will Hearn"],
+  "Transfer out of USF (not grad)": ["AJ Guiliana","Blake Pitts","Blake Wittman","Charles-Etienne Pelletier","Gavin Pacheco","James Porter","Kai Burdick","Kaleb Woltz","Lance Mittleman","Austin Cupic","Mattie Thomas","Miles Durvasula","Niko Gomozias","Ryan Martinez","Trent Cornell","Tyler Prystajko","Will Asby","Hunter Graham"],
+  "Juco Bandit": ["Adrian Valdez","Alex Gomez","Braden Wellen","Chris Bhyre","Christian Stapleton","Darius Foster","Dylan Brown","Garret Johnston","Gino Rossi","Jackson Nystrom","Jake Verwiel","Jovani Wiggs","JJ Gomez (Ice JJ Swish)","Kai Yovanovich","Kevin Shea","Kolby Calia","Lance Santerre","Logan Azem","Logan Schweizer","Marcelo Saldana","Mattie Thomas","Matteo Bellisimo","Matty Fung","Nick Walsh","Quentin Pohorski","Tyler Harries","Tyler Prystajko","Tyvon Moore","Wyatt Davis","Zach Griffin","Oscar Lepe","Hunter Graham","Kody Watanabe","Assaf Lowengart"],
+  "4 Year Don": ["AC Cabrera","Adam Shew","Cal Amborn","Gabriel Barrett","Harris Williams III","Hunter Holzemer","Jesse Barron","JT Amaral","Lance Santerre","Mario Demera","Matt McConnell","Max Jones","Patrick Kieghran","Tyler Martinez"],
+  "5 Year Don": ["Matt McConnell","Harris Williams III"],
+  "Starting Pitcher (min. 1 game)": ["Adam Shew","Adrian Valdez","Aidan Risse","Austin Cupic","Andrew Hazell","Blake Shepardson","Cal Amborn","Gabriel Barrett","Gauge Lockhart","Hunter Holzemer","Jake Andreas","Jesse Barron","Joe Soberon","Lance Santerre","Matt McConnell","Max Jones","Ryan Yerby","Thomas Gonzales","Weston Lombard","Will Hearn"],
+  "Home Run (min. 1)": ["Blake Atkins","Blake Pitts","Brendan Burke","Charles-Etienne Pelletier","Christian Stapleton","Darius Foster","Harris Williams III","Eddison Esquivel","Jackson Nystrom","Jayden Garrison","Jordan Lewis","JT Amaral","Kenny Decelle","Kody Watanabe","Logan Schweizer","Mario Demera","Mattie Thomas","Matteo Bellisimo","Matty Fung","Michael Campagna","Myles Kallinger","Patrick Kieghran","Ryan Martinez","Trevor Harmon","Tyler Harries","Tyler Martinez","Tyvon Moore","Will Asby","Wyatt Davis","Zach Griffin","Zack Ramppen"],
+  "81 Beaumont Resident": ["Cal Amborn","Gabriel Barrett","Hunter Holzemer","Luke Rossi","Blake Pitts","Kevin Shea","Myles Kallinger","Wyatt Davis"],
+  "420 Masonic Resident": ["Lane Oliphant","Max Jones","Lance Santerre","Mario Demera","Trevor Harmon","TJ Rogers","Zack Ramppen","Garret Johnston","Tyler Harries","Nick Walsh","Aidan Risse","Joe Soberon"],
+  "Hemway Terrace Resident": ["AC Cabrera","Blake Wittman","Kolby Calia","Matteo Bellisimo","Alex Gomez","AJ Guiliana"],
+  "Lived with Mackey": ["Jordan Lewis","Keller Rivers","Gino Rossi","Jake Andreas","Gauge Lockhart","Tyler Harries"],
+  "Cook Street Resident": ["Patrick Kieghran","Jesse Barron","JT Amaral","Wes Harwell","Brendan Burke","James Porter"],
+  "MagPad Resident": ["Magnus Nelson","Eddison Esquivel","Gavin Pacheco","Austin Cupic","Gauge Lockhart"],
+  "Foreign Player": ["Charles-Etienne Pelletier","Ken Hemmer","Andrew Hazell","Assaf Lowengart"],
+  "Named Blake ___": ["Blake Atkins","Blake Pitts","Blake Shepardson","Blake Wittman"],
+  "Catcher": ["Brady Luyben","Brendan Burke","Bryce Humphry","Evan Nahra","JT Amaral","Michael Campagna","Patrick Kozielec","Trevor Harmon","Zach Griffin","Zack Ramppen"],
+  "Left-Handed Thrower": ["Aidan Schraeder","Eddison Esquivel","Hunter Holzemer","Lance Santerre","Mattie Thomas","Niko Gomozias","Timmy Reed","Weston Lombard","Will Hearn"],
+};
+
+// Short display labels for grid headers
+const LABEL = {
+  "Fall Cut": "Fall Cut",
+  "Graduate Transfer into USF": "Grad Transfer In",
+  "Transfer into USF from 4 year (not grad)": "Transfer In\n(4yr, non-grad)",
+  "Grad Transfer out of USF": "Grad Transfer Out",
+  "Transfer out of USF (not grad)": "Transfer Out\n(non-grad)",
+  "Juco Bandit": "Juco Bandit",
+  "4 Year Don": "4 Year Don",
+  "5 Year Don": "5 Year Don",
+  "Starting Pitcher (min. 1 game)": "Starting Pitcher\n(min. 1 game)",
+  "Home Run (min. 1)": "Home Run\n(min. 1)",
+  "81 Beaumont Resident": "81 Beaumont\nResident",
+  "420 Masonic Resident": "420 Masonic\nResident",
+  "Hemway Terrace Resident": "Hemway Terrace\nResident",
+  "Lived with Mackey": "Lived with\nMackey",
+  "Cook Street Resident": "Cook Street\nResident",
+  "MagPad Resident": "MagPad\nResident",
+  "Foreign Player": "Foreign Player",
+  "Named Blake ___": 'Named\n"Blake ___"',
+  "Catcher": "Catcher\n(min. 1 inning)",
+  "Left-Handed Thrower": "Left-Handed\nThrower",
+};
+
+// ══════════════════════════════════════════════════
+//  YEAR DATA  (from DonsYears.csv)
+// ══════════════════════════════════════════════════
+const PLAYER_YEARS = {
+  "AC Cabrera":["2022-23","2023-24","2024-25","2025-26"],
+  "Adam Shew":["2022-23","2023-24","2024-25"],
+  "Adrian Valdez":["2025-26"],
+  "Aidan Risse":["2024-25"],
+  "Aidan Schraeder":["2022-23"],
+  "AJ Guiliana":["2022-23","2023-24"],
+  "Alan Gonzalez":["2025-26"],
+  "Alex Gomez":["2025-26"],
+  "Andrew Bonfigli":["2024-25"],
+  "Andrew Hazell":["2023-24"],
+  "Assaf Lowengart":["2023-24"],
+  "Austin Cupic":["2023-24","2024-25"],
+  "Blake Atkins":["2022-23"],
+  "Blake Pitts":["2022-23","2023-24"],
+  "Blake Shepardson":["2023-24"],
+  "Blake Wittman":["2022-23","2023-24"],
+  "Braden Wellen":["2025-26"],
+  "Brady Luyben":["2025-26"],
+  "Brendan Burke":["2024-25","2025-26"],
+  "Bryce Humphry":["2023-24"],
+  "Cade Watson":["2025-26"],
+  "Cal Amborn":["2022-23","2023-24","2024-25","2025-26"],
+  "Casey Threats III":["2022-23"],
+  "Charles-Etienne Pelletier":["2023-24","2024-25"],
+  "Chase Fogg":["2023-24"],
+  "Chris Bhyre":["2025-26"],
+  "Christian Stapleton":["2022-23"],
+  "Darius Foster":["2022-23"],
+  "David Bedrosian":["2023-24"],
+  "Declan Elias":["2023-24"],
+  "Dylan Brown":["2024-25"],
+  "Eddison Esquivel":["2024-25","2025-26"],
+  "Evan Nahra":["2022-23"],
+  "Franco Moran":["2023-24"],
+  "Gabriel Barrett":["2022-23","2023-24","2024-25","2025-26"],
+  "Garret Johnston":["2025-26"],
+  "Garrett Johnston":["2025-26"],
+  "Gauge Lockhart":["2025-26"],
+  "Gavin Pacheco":["2023-24","2024-25"],
+  "Gino Rossi":["2025-26"],
+  "Grant Selig":["2022-23"],
+  "Harris Williams III":["2022-23"],
+  "Hunter Graham":["2023-24","2024-25"],
+  "Hunter Holzemer":["2022-23","2023-24","2024-25","2025-26"],
+  "Isaiah Landry":["2025-26"],
+  "Jackson Nystrom":["2023-24","2024-25","2025-26"],
+  "Jackson Thielen":["2025-26"],
+  "Jake Andreas":["2025-26"],
+  "Jake Hiromoto":["2025-26"],
+  "Jake Verwiel":["2023-24","2024-25"],
+  "James Porter":["2022-23"],
+  "Jared Lewis":["2025-26"],
+  "Jayden Garrison":["2025-26"],
+  "Jesse Barron":["2022-23"],
+  "JJ Gomez (Ice JJ Swish)":["2023-24"],
+  "Joe Soberon":["2023-24","2024-25"],
+  "Joey Capobianco":["2023-24"],
+  "John Clinkenbeard":["2023-24"],
+  "Jordan Lewis":["2024-25","2025-26"],
+  "Jovani Wiggs":["2024-25"],
+  "JT Amaral":["2022-23","2023-24","2024-25"],
+  "Kai Burdick":["2022-23"],
+  "Kai Yovanovich":["2023-24","2024-25","2025-26"],
+  "Kaleb Woltz":["2022-23"],
+  "Keaton Carattini":["2022-23"],
+  "Keller Rivers":["2024-25"],
+  "Ken Hemmer":["2022-23"],
+  "Kenny Decelle":["2024-25"],
+  "Kevin Shea":["2023-24","2024-25"],
+  "Kolby Calia":["2023-24","2024-25"],
+  "Kody Watanabe":["2023-24","2024-25"],
+  "Lance Mittleman":["2023-24"],
+  "Lance Santerre":["2022-23","2023-24","2024-25"],
+  "Lane Oliphant":["2022-23"],
+  "Logan Azem":["2022-23","2023-24"],
+  "Logan Leax":["2023-24","2024-25"],
+  "Logan Schweizer":["2023-24","2024-25"],
+  "Luke Rossi":["2022-23","2023-24"],
+  "Magnus Nelson":["2023-24","2024-25","2025-26"],
+  "Marcelo Saldana":["2023-24"],
+  "Mario Demera":["2022-23"],
+  "Matt McConnell":["2022-23","2023-24"],
+  "Matteo Bellisimo":["2024-25","2025-26"],
+  "Mattie Thomas":["2022-23","2023-24"],
+  "Matty Fung":["2023-24","2024-25"],
+  "Max Jones":["2022-23","2023-24"],
+  "Max Toporek":["2023-24"],
+  "Michael Campagna":["2022-23","2023-24"],
+  "Miles Durvasula":["2023-24","2024-25","2025-26"],
+  "Myles Kallinger":["2023-24","2024-25","2025-26"],
+  "Nick Bacura":["2025-26"],
+  "Nick Walsh":["2024-25","2025-26"],
+  "Niko Gomozias":["2023-24","2024-25"],
+  "Noah Nicholls":["2022-23"],
+  "Oscar Lepe":["2022-23"],
+  "Patrick Kieghran":["2022-23","2023-24","2024-25"],
+  "Patrick Kozielec":["2025-26"],
+  "Paul Wheeler":["2025-26"],
+  "Quentin Pohorski":["2023-24","2024-25","2025-26"],
+  "Ruben Rivera":["2022-23"],
+  "Ryan Martinez":["2022-23"],
+  "Ryan Skjonsby":["2022-23"],
+  "Ryan Yerby":["2022-23"],
+  "Thomas Gonzales":["2025-26"],
+  "Timmy Reed":["2024-25"],
+  "Tino Vassell":["2025-26"],
+  "TJ Rogers":["2022-23","2023-24","2024-25","2025-26"],
+  "Trent Cornell":["2024-25"],
+  "Trevor Busby":["2025-26"],
+  "Trevor Harmon":["2023-24","2024-25","2025-26"],
+  "Tyler Harries":["2024-25","2025-26"],
+  "Tyler Martinez":["2022-23"],
+  "Tyler Prystajko":["2024-25"],
+  "Tyvon Moore":["2023-24","2024-25"],
+  "Wes Harwell":["2024-25","2025-26"],
+  "Weston Lombard":["2022-23"],
+  "Will Asby":["2022-23"],
+  "Will Hearn":["2022-23"],
+  "Wyatt Davis":["2025-26"],
+  "Zach Griffin":["2022-23"],
+  "Zach Nagy":["2025-26"],
+  "Zack Ramppen":["2023-24","2024-25","2025-26"],
+};
+
+const ALL_YEARS = ["2022-23","2023-24","2024-25","2025-26"];
+
+// ══════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════
+function norm(s){ return s.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim(); }
+function pts(n){ return n<=1?400:n<=3?250:n<=6?150:100; }
+function mk(tag,cls){ const d=document.createElement(tag); if(cls)d.className=cls; return d; }
+function labelHTML(key){ return (LABEL[key]||key).replace(/\n/g,'<br>'); }
+
+// Players known to a user given selected years
+function knownPlayers(selectedYears) {
+  const known = new Set();
+  for(const [player, years] of Object.entries(PLAYER_YEARS)) {
+    if(years.some(y => selectedYears.includes(y))) known.add(player);
+  }
+  return known;
+}
+
+// Build filtered CAT where every player must be known
+function buildFilteredCat(selectedYears) {
+  const known = knownPlayers(selectedYears);
+  const filtered = {};
+  for(const [cat, players] of Object.entries(CAT_RAW)) {
+    const fp = players.filter(p => known.has(p));
+    if(fp.length > 0) filtered[cat] = fp;
+  }
+  return filtered;
+}
+
+function ix(CAT, a, b){ return (CAT[a]||[]).filter(p=>(CAT[b]||[]).includes(p)); }
+
+function buildValidGrids(CAT) {
+  const keys = Object.keys(CAT);
+  const grids = [];
+  const n = keys.length;
+  for(let i=0;i<n-2;i++) for(let j=i+1;j<n-1;j++) for(let k=j+1;k<n;k++){
+    const cols=[keys[i],keys[j],keys[k]];
+    for(let a=0;a<n-2;a++) for(let b=a+1;b<n-1;b++) for(let c=b+1;c<n;c++){
+      const rows=[keys[a],keys[b],keys[c]];
+      if(cols.some(x=>rows.includes(x))) continue;
+      if(!rows.every(r=>cols.every(col=>ix(CAT,r,col).length>0))) continue;
+
+      // Reject if any single player is the ONLY valid answer across all 3 cells in any row or column
+      let dominated = false;
+
+      // Check rows: for each row, is there one player who is the sole answer in every cell?
+      for(const r of rows) {
+        // Cells in this row: (r, cols[0]), (r, cols[1]), (r, cols[2])
+        const cellAnswers = cols.map(col => ix(CAT, r, col));
+        // Find any player who appears as the only answer in ALL three cells
+        const singles = cellAnswers.map(ans => ans.length === 1 ? ans[0] : null);
+        if(singles.every(s => s !== null) && singles.every(s => s === singles[0])) {
+          dominated = true; break;
+        }
+        // Also reject if one player is the ONLY possible answer for every cell in the row
+        // (even if cells have multiple answers, one player appears in all and removing them empties any cell)
+        const allPlayers = [...new Set(cellAnswers.flat())];
+        for(const p of allPlayers) {
+          if(cellAnswers.every(ans => ans.length === 1 && ans[0] === p)) {
+            dominated = true; break;
+          }
+        }
+        if(dominated) break;
+      }
+
+      if(!dominated) {
+        // Check columns similarly
+        for(const col of cols) {
+          const cellAnswers = rows.map(r => ix(CAT, r, col));
+          const singles = cellAnswers.map(ans => ans.length === 1 ? ans[0] : null);
+          if(singles.every(s => s !== null) && singles.every(s => s === singles[0])) {
+            dominated = true; break;
+          }
+          for(const p of [...new Set(cellAnswers.flat())]) {
+            if(cellAnswers.every(ans => ans.length === 1 && ans[0] === p)) {
+              dominated = true; break;
+            }
+          }
+          if(dominated) break;
+        }
+      }
+
+      if(!dominated) grids.push({cols,rows});
+    }
+  }
+  return grids;
+}
+
+// ══════════════════════════════════════════════════
+//  YEAR SELECTION SCREEN
+// ══════════════════════════════════════════════════
+let selectedYears = [];
+
+function buildYearScreen() {
+  const container = document.getElementById('yearChecks');
+  container.innerHTML = '';
+
+  // Count how many players per year are in the category data
+  const allCatPlayers = new Set(Object.values(CAT_RAW).flat());
+
+  ALL_YEARS.forEach(yr => {
+    const playersThisYear = Object.entries(PLAYER_YEARS)
+      .filter(([p, yrs]) => yrs.includes(yr) && allCatPlayers.has(p))
+      .length;
+
+    const div = mk('div', 'year-check');
+    div.dataset.year = yr;
+    div.innerHTML = `
+      <div class="yr-box"><span class="yr-check-mark">✓</span></div>
+      <div class="yr-label">${yr}</div>
+      <div class="yr-count">${playersThisYear} players</div>`;
+    div.onclick = () => toggleYear(yr, div);
+    container.appendChild(div);
+  });
+}
+
+function toggleYear(yr, el) {
+  const idx = selectedYears.indexOf(yr);
+  if(idx >= 0) {
+    selectedYears.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    selectedYears.push(yr);
+    el.classList.add('selected');
+  }
+  document.getElementById('ysError').textContent = '';
+  updateAllBox();
+}
+
+function selectAll() {
+  const allSelected = selectedYears.length === ALL_YEARS.length;
+  if(allSelected) {
+    selectedYears = [];
+    document.querySelectorAll('.year-check').forEach(d => d.classList.remove('selected'));
+  } else {
+    selectedYears = [...ALL_YEARS];
+    document.querySelectorAll('.year-check').forEach(d => d.classList.add('selected'));
+  }
+  document.getElementById('ysError').textContent = '';
+  updateAllBox();
+}
+
+function updateAllBox() {
+  const box = document.getElementById('allBox');
+  box.textContent = selectedYears.length === ALL_YEARS.length ? '✓' : '';
+  box.style.borderColor = selectedYears.length === ALL_YEARS.length ? 'var(--gold)' : 'var(--muted)';
+  box.style.background = selectedYears.length === ALL_YEARS.length ? 'var(--gold)' : '';
+  box.style.color = 'var(--green-d)';
+}
+
+function startGame() {
+  if(selectedYears.length === 0) {
+    document.getElementById('ysError').textContent = 'Please select at least one season.';
+    return;
+  }
+
+  // Check if enough valid grids exist
+  const filteredCat = buildFilteredCat(selectedYears);
+  const grids = buildValidGrids(filteredCat);
+
+  if(grids.length === 0) {
+    document.getElementById('ysError').textContent = 'Not enough player overlap across categories for your selected years. Try adding more seasons.';
+    return;
+  }
+
+  // Store and launch
+  ACTIVE_CAT = filteredCat;
+  ACTIVE_GRIDS = grids;
+  ACTIVE_PLAYERS = [...new Set(Object.values(filteredCat).flat())].sort();
+
+  document.getElementById('yearScreen').style.display = 'none';
+  document.getElementById('gameScreen').classList.add('active');
+
+  // Update year badge
+  const sorted = [...selectedYears].sort();
+  document.getElementById('yrBadge').innerHTML =
+    `Playing as: <span>${sorted.join(' · ')}</span>`;
+
+  newGame();
+}
+
+function goToYearScreen() {
+  closeModal();
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('yearScreen').style.display = 'flex';
+  document.getElementById('go').classList.remove('show');
+}
+
+// ══════════════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════════════
+let ACTIVE_CAT = {}, ACTIVE_GRIDS = [], ACTIVE_PLAYERS = [];
+const MAX_G = 9;
+let colC=[], rowC=[];
+let cells=[];
+let gLeft=MAX_G, gUsed=0, score=0;
+let active=null, over=false, acHi=-1;
+
+// ══════════════════════════════════════════════════
+//  NEW GAME
+// ══════════════════════════════════════════════════
+function newGame(){
+  const g = ACTIVE_GRIDS[Math.floor(Math.random()*ACTIVE_GRIDS.length)];
+  colC=[...g.cols]; rowC=[...g.rows];
+  gLeft=MAX_G; gUsed=0; score=0; over=false; active=null;
+  cells=Array(3).fill(0).map(()=>Array(3).fill(0).map(()=>({solved:false,player:null,tried:[]})));
+  document.getElementById('go').classList.remove('show');
+  document.getElementById('gLeft').textContent=MAX_G;
+  document.getElementById('scVal').textContent='0';
+  buildPips(); renderGrid();
+}
+
+// ══════════════════════════════════════════════════
+//  PIPS
+// ══════════════════════════════════════════════════
+function buildPips(){
+  const row=document.getElementById('pips');
+  const lbl=row.querySelector('.pip-lbl');
+  row.innerHTML='';
+  for(let i=0;i<MAX_G;i++){const d=mk('div','pip');d.id=`pip${i}`;row.appendChild(d);}
+  row.appendChild(lbl);
+}
+function setPip(i,t){const p=document.getElementById(`pip${i}`);if(p)p.classList.add(t);}
+
+// ══════════════════════════════════════════════════
+//  GRID DOM
+// ══════════════════════════════════════════════════
+function renderGrid(){
+  const g=document.getElementById('grid');
+  g.innerHTML='';
+  const corner=mk('div','g-corner');
+  corner.innerHTML='<div class="corner-txt">USF<br>DONS</div>';
+  g.appendChild(corner);
+  colC.forEach(cat=>{
+    const d=mk('div','g-ch');
+    d.innerHTML=`<div class="hdr-main">${labelHTML(cat)}</div><div class="hdr-sub">${ACTIVE_CAT[cat].length} players</div>`;
+    g.appendChild(d);
+  });
+  rowC.forEach((rCat,r)=>{
+    const rh=mk('div','g-rh');
+    rh.innerHTML=`<div class="hdr-main" style="text-align:right">${labelHTML(rCat)}</div><div class="hdr-sub" style="text-align:right">${ACTIVE_CAT[rCat].length} players</div>`;
+    g.appendChild(rh);
+    colC.forEach((cCat,c)=>{
+      const valid=ix(ACTIVE_CAT,rCat,cCat);
+      const d=mk('div','g-cell');
+      d.id=`c${r}${c}`;
+      d.onclick=()=>openCell(r,c);
+      d.innerHTML=`<span class="cell-plus">+</span>
+        <div class="cell-tip">${valid.length} valid answer${valid.length!==1?'s':''}</div>`;
+      g.appendChild(d);
+    });
+  });
+}
+
+function refreshCell(r,c){
+  const d=document.getElementById(`c${r}${c}`);
+  const valid=ix(ACTIVE_CAT,rowC[r],colC[c]);
+  const p=pts(valid.length);
+  d.className='g-cell solved pop';
+  d.innerHTML=`<div class="cell-body">
+    <div class="cell-icon">${valid.length<=1?'🔥':valid.length<=3?'⭐':'✓'}</div>
+    <div class="cell-name">${cells[r][c].player}</div>
+    <div class="cell-pts">+${p} pts · ${valid.length} ans</div>
+  </div>`;
+}
+
+function revealCell(r,c){
+  const d=document.getElementById(`c${r}${c}`);
+  const valid=ix(ACTIVE_CAT,rowC[r],colC[c]);
+  d.className='g-cell shown';
+  d.innerHTML=`<div class="cell-body cell-miss">
+    <div class="cell-icon" style="font-size:13px;opacity:.38">✗</div>
+    <div class="cell-name">${valid.slice(0,2).join(', ')}${valid.length>2?'…':''}</div>
+    <div class="cell-pts">${valid.length} answer${valid.length!==1?'s':''}</div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+//  CELL INTERACTION
+// ══════════════════════════════════════════════════
+function openCell(r,c){
+  if(over||cells[r][c].solved||gLeft<=0) return;
+  active={r,c};
+  document.querySelectorAll('.g-cell.active').forEach(d=>d.classList.remove('active'));
+  document.getElementById(`c${r}${c}`).classList.add('active');
+  const valid=ix(ACTIVE_CAT,rowC[r],colC[c]);
+  document.getElementById('mCats').innerHTML=`<b>${rowC[r]}</b> &amp; <b>${colC[c]}</b>`;
+  const n=valid.length;
+  const [cls,lbl]=n<=1?['hard','Legendary — 1 answer']:n<=3?['med',`Rare — ${n} answers`]:['easy',`${n} valid answers`];
+  document.getElementById('rPills').innerHTML=
+    `<div class="rp ${cls}">${lbl}</div><div class="rp">${gLeft} guess${gLeft!==1?'es':''} left</div>`;
+  document.getElementById('mErr').textContent='';
+  document.getElementById('pIn').value='';
+  closeAC();
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('pIn').focus(),80);
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+  closeAC();
+  if(active){document.getElementById(`c${active.r}${active.c}`).classList.remove('active');active=null;}
+}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+
+// ══════════════════════════════════════════════════
+//  AUTOCOMPLETE  (only shows known players)
+// ══════════════════════════════════════════════════
+document.getElementById('pIn').addEventListener('input',function(){
+  acHi=-1;
+  const q=this.value.trim(); if(q.length<1){closeAC();return;}
+  const qn=norm(q);
+  const hits=ACTIVE_PLAYERS.filter(p=>norm(p).includes(qn)).slice(0,8);
+  if(!hits.length){closeAC();return;}
+  const drop=document.getElementById('ac');
+  const esc=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  drop.innerHTML=hits.map(p=>`<div class="ac-it" data-p="${p.replace(/"/g,'&quot;')}"
+    onmousedown="pickAC(this.dataset.p)">
+    ${p.replace(new RegExp(`(${esc})`,'gi'),'<em>$1</em>')}
+  </div>`).join('');
+  drop.classList.add('open');
+});
+
+document.getElementById('pIn').addEventListener('keydown',function(e){
+  const items=[...document.getElementById('ac').querySelectorAll('.ac-it')];
+  if(e.key==='ArrowDown'){e.preventDefault();acHi=Math.min(acHi+1,items.length-1);hiAC(items);}
+  else if(e.key==='ArrowUp'){e.preventDefault();acHi=Math.max(acHi-1,-1);hiAC(items);}
+  else if(e.key==='Enter'){acHi>=0&&items[acHi]?pickAC(items[acHi].dataset.p):submit();}
+  else if(e.key==='Escape'){closeModal();}
+});
+function hiAC(items){items.forEach((d,i)=>d.classList.toggle('hi',i===acHi));}
+function closeAC(){const d=document.getElementById('ac');d.classList.remove('open');d.innerHTML='';acHi=-1;}
+function pickAC(p){document.getElementById('pIn').value=p;closeAC();}
+
+// ══════════════════════════════════════════════════
+//  SUBMIT GUESS
+// ══════════════════════════════════════════════════
+function submit(){
+  if(!active) return;
+  const raw=document.getElementById('pIn').value.trim();
+  if(!raw) return;
+  const {r,c}=active;
+  const rCat=rowC[r], cCat=colC[c];
+  const errEl=document.getElementById('mErr');
+  const qn=norm(raw);
+
+  // Match against known players only
+  const matched=ACTIVE_PLAYERS.find(p=>norm(p)===qn)||ACTIVE_PLAYERS.find(p=>norm(p).includes(qn));
+
+  if(!matched){
+    errEl.textContent=`"${raw}" — not found among players from your selected seasons.`;
+    flash(r,c); spendGuess('no'); return;
+  }
+  if(cells[r][c].tried.includes(matched)){
+    errEl.textContent=`${matched} was already tried for this cell.`; return;
+  }
+  cells[r][c].tried.push(matched);
+
+  const valid=ix(ACTIVE_CAT,rCat,cCat);
+  if(valid.includes(matched)){
+    cells[r][c].solved=true; cells[r][c].player=matched;
+    score+=pts(valid.length);
+    document.getElementById('scVal').textContent=score;
+    spendGuess('ok');
+    refreshCell(r,c);
+    closeModal(); checkEnd();
+  } else {
+    const inR=(ACTIVE_CAT[rCat]||[]).includes(matched);
+    const inC=(ACTIVE_CAT[cCat]||[]).includes(matched);
+    let hint=`${matched} doesn't fit both categories.`;
+    if(inR&&!inC) hint=`${matched} fits "${rCat}" but not "${cCat}".`;
+    if(!inR&&inC) hint=`${matched} fits "${cCat}" but not "${rCat}".`;
+    if(!inR&&!inC) hint=`${matched} doesn't fit either category.`;
+    errEl.textContent=hint;
+    flash(r,c); spendGuess('no');
+  }
+}
+
+function flash(r,c){
+  const d=document.getElementById(`c${r}${c}`);
+  d.classList.add('wflash'); setTimeout(()=>d.classList.remove('wflash'),480);
+}
+
+function spendGuess(type){
+  setPip(gUsed,type); gUsed++; gLeft--;
+  document.getElementById('gLeft').textContent=gLeft;
+  const pills=document.getElementById('rPills');
+  if(pills.children[1]) pills.children[1].textContent=`${gLeft} guess${gLeft!==1?'es':''} left`;
+  checkEnd();
+}
+
+// ══════════════════════════════════════════════════
+//  END GAME
+// ══════════════════════════════════════════════════
+function checkEnd(){
+  const solved=cells.flat().filter(s=>s.solved).length;
+  if(solved===9){endGame(true);return;}
+  if(gLeft<=0){endGame(false);}
+}
+
+function endGame(win){
+  over=true;
+  const solved=cells.flat().filter(s=>s.solved).length;
+  if(!win) for(let r=0;r<3;r++)for(let c=0;c<3;c++) if(!cells[r][c].solved) revealCell(r,c);
+  const title=document.getElementById('goTitle');
+  const body=document.getElementById('goBody');
+  if(win){
+    title.className='go-title win'; title.textContent='IMMACULATE!';
+    body.innerHTML=`Perfect grid! Final score: <b>${score} pts</b>`;
+  } else {
+    title.className='go-title loss';
+    title.textContent=solved>=6?'NICE RUN':solved>=3?'GOOD EFFORT':'TOUGH ONE';
+    body.innerHTML=`<b>${solved}/9</b> cells solved &nbsp;·&nbsp; Score: <b>${score} pts</b>`;
+  }
+  document.getElementById('go').classList.add('show');
+}
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+buildYearScreen();
+</script>
+</body>
+</html>
