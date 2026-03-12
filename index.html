@@ -358,8 +358,8 @@ const CAT_RAW = {
   "Transfer into USF from 4 year (not grad)": ["Blake Shepardson","Isaiah Landry","Jared Lewis","Jordan Lewis","Kody Watanabe","Mattie Thomas","Michael Campagna","Paul Wheeler","Zack Ramppen","Will Hearn"],
   "Grad Transfer out of USF": ["Harris Williams III","Jake Verwiel","Kody Watanabe","Marcelo Saldana","Mario Demera","Mattie Thomas","Max Jones","Tyler Martinez","Tyvon Moore","Zach Griffin","Will Hearn"],
   "Transfer out of USF (not grad)": ["AJ Guiliana","Blake Pitts","Blake Wittman","Charles-Etienne Pelletier","Gavin Pacheco","James Porter","Kai Burdick","Kaleb Woltz","Lance Mittleman","Austin Cupic","Mattie Thomas","Miles Durvasula","Niko Gomozias","Ryan Martinez","Trent Cornell","Tyler Prystajko","Will Asby","Hunter Graham"],
-  "Juco Bandit": ["Adrian Valdez","Alex Gomez","Braden Wellen","Chris Bhyre","Christian Stapleton","Darius Foster","Dylan Brown","Garret Johnston","Gino Rossi","Jackson Nystrom","Jake Verwiel","Jovani Wiggs","JJ Gomez (Ice JJ Swish)","Kai Yovanovich","Kevin Shea","Kolby Calia","Lance Santerre","Logan Azem","Logan Schweizer","Marcelo Saldana","Mattie Thomas","Matteo Bellisimo","Matty Fung","Nick Walsh","Quentin Pohorski","Tyler Harries","Tyler Prystajko","Tyvon Moore","Wyatt Davis","Zach Griffin","Oscar Lepe","Hunter Graham","Kody Watanabe","Assaf Lowengart"],
-  "4 Year Don": ["AC Cabrera","Adam Shew","Cal Amborn","Gabriel Barrett","Harris Williams III","Hunter Holzemer","Jesse Barron","JT Amaral","Lance Santerre","Mario Demera","Matt McConnell","Max Jones","Patrick Kieghran","Tyler Martinez"],
+  "Juco Bandit": ["Adrian Valdez","Alex Gomez","Braden Wellen","Chris Bhyre","Christian Stapleton","Darius Foster","Dylan Brown","Garret Johnston","Gino Rossi","Jackson Nystrom","Jake Verwiel","Jovani Wiggs","JJ Gomez (Ice JJ Swish)","Kai Yovanovich","Kenny Decelle","Kevin Shea","Kolby Calia","Lance Santerre","Logan Azem","Logan Schweizer","Marcelo Saldana","Mattie Thomas","Matteo Bellisimo","Matty Fung","Nick Walsh","Quentin Pohorski","Tyler Harries","Tyler Prystajko","Tyvon Moore","Wyatt Davis","Zach Griffin","Oscar Lepe","Hunter Graham","Kody Watanabe","Assaf Lowengart"],
+  "4 Year Don": ["AC Cabrera","Adam Shew","Cal Amborn","Gabriel Barrett","Harris Williams III","Hunter Holzemer","Jesse Barron","JT Amaral","Lance Santerre","Mario Demera","Matt McConnell","Max Jones","Patrick Kieghran","TJ Rogers","Tyler Martinez"],
   "5 Year Don": ["Matt McConnell","Harris Williams III"],
   "Starting Pitcher (min. 1 game)": ["Adam Shew","Adrian Valdez","Aidan Risse","Austin Cupic","Andrew Hazell","Blake Shepardson","Cal Amborn","Gabriel Barrett","Gauge Lockhart","Hunter Holzemer","Jake Andreas","Jesse Barron","Joe Soberon","Lance Santerre","Matt McConnell","Max Jones","Ryan Yerby","Thomas Gonzales","Weston Lombard","Will Hearn"],
   "Home Run (min. 1)": ["Blake Atkins","Blake Pitts","Brendan Burke","Charles-Etienne Pelletier","Christian Stapleton","Darius Foster","Harris Williams III","Eddison Esquivel","Jackson Nystrom","Jayden Garrison","Jordan Lewis","JT Amaral","Kenny Decelle","Kody Watanabe","Logan Schweizer","Mario Demera","Mattie Thomas","Matteo Bellisimo","Matty Fung","Michael Campagna","Myles Kallinger","Patrick Kieghran","Ryan Martinez","Trevor Harmon","Tyler Harries","Tyler Martinez","Tyvon Moore","Will Asby","Wyatt Davis","Zach Griffin","Zack Ramppen"],
@@ -373,6 +373,7 @@ const CAT_RAW = {
   "Named Blake ___": ["Blake Atkins","Blake Pitts","Blake Shepardson","Blake Wittman"],
   "Catcher": ["Brady Luyben","Brendan Burke","Bryce Humphry","Evan Nahra","JT Amaral","Michael Campagna","Patrick Kozielec","Trevor Harmon","Zach Griffin","Zack Ramppen"],
   "Left-Handed Thrower": ["Aidan Schraeder","Eddison Esquivel","Hunter Holzemer","Lance Santerre","Mattie Thomas","Niko Gomozias","Timmy Reed","Weston Lombard","Will Hearn"],
+  "Lived in the Dorms": ["Andrew Bonfigli","Bryce Humphry","Casey Threats III","Chase Fogg","Evan Nahra","Grant Selig","Joey Capobianco","John Clinkenbeard","Jovani Wiggs","JJ Gomez (Ice JJ Swish)","Keller Rivers","Ken Hemmer","Max Toporek","Noah Nicholls","Ruben Rivera","Ryan Skjonsby","Patrick Kozielec","Cade Watson","Isaiah Landry","Max Jones","Mario Demera","Harris Williams III","Blake Pitts","Blake Wittman","Charles-Etienne Pelletier","Gavin Pacheco","James Porter","Kai Burdick","Kaleb Woltz","Lance Mittleman","Austin Cupic","Miles Durvasula","Niko Gomozias","Ryan Martinez","Trent Cornell","AC Cabrera","Adam Shew","Cal Amborn","Gabriel Barrett","Hunter Holzemer","Jesse Barron","JT Amaral","Matt McConnell","Patrick Kieghran","Tyler Martinez","Trevor Harmon","Magnus Nelson","Jake Andreas","Jordan Lewis","Jared Lewis","Brendan Burke","Eddison Esquivel"],
 };
 
 // Short display labels for grid headers
@@ -397,6 +398,7 @@ const LABEL = {
   "Named Blake ___": 'Named\n"Blake ___"',
   "Catcher": "Catcher\n(min. 1 inning)",
   "Left-Handed Thrower": "Left-Handed\nThrower",
+  "Lived in the Dorms": "Lived in\nthe Dorms",
 };
 
 // ══════════════════════════════════════════════════
@@ -568,49 +570,37 @@ function buildValidGrids(CAT) {
     for(let a=0;a<n-2;a++) for(let b=a+1;b<n-1;b++) for(let c=b+1;c<n;c++){
       const rows=[keys[a],keys[b],keys[c]];
       if(cols.some(x=>rows.includes(x))) continue;
-      if(!rows.every(r=>cols.every(col=>ix(CAT,r,col).length>0))) continue;
 
-      // Reject if any single player is the ONLY valid answer across all 3 cells in any row or column
+      // Build all 9 cell answer lists
+      const cellAnswers = [];
+      let allValid = true;
+      for(const r of rows){
+        for(const col of cols){
+          const ans = ix(CAT, r, col);
+          if(ans.length === 0){ allValid = false; break; }
+          cellAnswers.push(ans);
+        }
+        if(!allValid) break;
+      }
+      if(!allValid) continue;
+
+      // For each player, count how many cells they appear in and how many they are the sole answer for
+      const appearsIn = {};
+      const soleIn = {};
+      for(const ans of cellAnswers){
+        for(const p of ans) appearsIn[p] = (appearsIn[p]||0) + 1;
+        if(ans.length === 1) soleIn[ans[0]] = (soleIn[ans[0]]||0) + 1;
+      }
+
       let dominated = false;
-
-      // Check rows: for each row, is there one player who is the sole answer in every cell?
-      for(const r of rows) {
-        // Cells in this row: (r, cols[0]), (r, cols[1]), (r, cols[2])
-        const cellAnswers = cols.map(col => ix(CAT, r, col));
-        // Find any player who appears as the only answer in ALL three cells
-        const singles = cellAnswers.map(ans => ans.length === 1 ? ans[0] : null);
-        if(singles.every(s => s !== null) && singles.every(s => s === singles[0])) {
-          dominated = true; break;
-        }
-        // Also reject if one player is the ONLY possible answer for every cell in the row
-        // (even if cells have multiple answers, one player appears in all and removing them empties any cell)
-        const allPlayers = [...new Set(cellAnswers.flat())];
-        for(const p of allPlayers) {
-          if(cellAnswers.every(ans => ans.length === 1 && ans[0] === p)) {
-            dominated = true; break;
-          }
-        }
-        if(dominated) break;
+      for(const p of Object.keys(appearsIn)){
+        // Reject if one player is the sole answer in 2+ cells
+        if((soleIn[p]||0) >= 2){ dominated = true; break; }
+        // Reject if one player appears as a valid answer in 5+ of the 9 cells
+        if(appearsIn[p] >= 5){ dominated = true; break; }
       }
 
-      if(!dominated) {
-        // Check columns similarly
-        for(const col of cols) {
-          const cellAnswers = rows.map(r => ix(CAT, r, col));
-          const singles = cellAnswers.map(ans => ans.length === 1 ? ans[0] : null);
-          if(singles.every(s => s !== null) && singles.every(s => s === singles[0])) {
-            dominated = true; break;
-          }
-          for(const p of [...new Set(cellAnswers.flat())]) {
-            if(cellAnswers.every(ans => ans.length === 1 && ans[0] === p)) {
-              dominated = true; break;
-            }
-          }
-          if(dominated) break;
-        }
-      }
-
-      if(!dominated) grids.push({cols,rows});
+      if(!dominated) grids.push({cols, rows});
     }
   }
   return grids;
